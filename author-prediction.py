@@ -18,8 +18,9 @@ import matplotlib.pyplot as plt
 plt.style.use('bmh')
 
 
+
 # Here we import the CSV of our scraped results.  There are about 15,000 entries.
-df = pd.read_csv("motherboard.csv", names=['id', 'url', 'title', 'headline', 'description', 'author', 'date'], skiprows=1)
+df = pd.read_csv("files/articles.csv", names=['id', 'url', 'title', 'headline', 'description', 'author', 'date'], skiprows=1)
 df.drop(['id', 'url'], axis=1, inplace=True)
 
 # Shuffle the rows for randomness
@@ -38,7 +39,7 @@ X_train, X_test, y_train, y_test = train_test_split(df.drop('author', axis=1), d
 
 
 
-# Some functions for returning the normalized value of the age of the articles:
+'''Some functions for returning the normalized value of the age of the articles'''
 # Get age in weeks since 2000
 def get_time_diff(s):
     time_diff = (s - pd.to_datetime('2000-1-1'))
@@ -65,8 +66,8 @@ def get_normalized_age(X):
 
 
 
-# Miscellaneous helper functions:
-# Function to convert tags to work properly with WordNetLemmatizer
+'''Miscellaneous helper functions'''
+# Convert tags to work properly with WordNetLemmatizer
 def pos_converter(word):
     pos = nltk.pos_tag([word])[0][1]
     if pos.startswith('J'):
@@ -80,7 +81,7 @@ def pos_converter(word):
     
 # Set up sentiment dictionary for sentiment analysis
 sentiment_dictionary = {}
-for line in open('AFINN/AFINN-111.txt'):
+for line in open('files/AFINN-111.txt'):
     word, score = line.split('\t')
     sentiment_dictionary[word] = int(score)
 
@@ -93,25 +94,17 @@ stop_words = set(stopwords.words('english'))
 
 
 
-# For each of the three text fields ('Title', 'Headline', and 'Description'),
-# we get a list of the most common 4000 words.  We will use these 4000 words as
-# feature maps for each of the text fields.
-
-# To boost the semantic understanding, we lemmatize (akin to stemming) each word before analyzing it.
+'''For each of the three text fields ('Title', 'Headline', and 'Description'), we get a list of the most common 4000 words across all records'''
 for text_column in ['title', 'headline', 'description']:
-    
-    # Lemmatize all the words and maintain table structure
-    lemmatized_cells = []
 
-    for cell in X_train[text_column]:
-        
-        cell_words = []
-        
+    # To boost the semantic understanding, we lemmatize (akin to stemming) each word before analyzing it, while maintaining the table structure
+    lemmatized_cells = []
+    for cell in X_train[text_column]:        
+        cell_words = []        
         if len(str(cell)) > 0:
             tokenized_cell = word_tokenize(str(cell))
             for (word, pos) in nltk.pos_tag(tokenized_cell):
                 cell_words.append(lemmatizer.lemmatize(word.lower(), pos=pos_converter(pos)))
-
         lemmatized_cells.append(cell_words)
 
     # Get list of all words used in the lemmatized cells
@@ -182,15 +175,15 @@ def feature_setup_pipeline(X):
    
 
 
-### Here is some code to add sentiment analysis to each of the text fields.  This has not yet been implemented.
-#     # Add 3 different sentiment values to the features:
-#     rev_sent_absolute = []
-#     rev_sent_adjusted = []
-#     rev_sent_valence = []
-#     for review in X:
-#         rev_sent_absolute.append(sum(sentiment_dictionary.get(word, 0) for word in review))
-#         rev_sent_adjusted.append(sum(sentiment_dictionary.get(word, 0) for word in review) / len(review))
-#         rev_sent_valence.append(sum(math.fabs(sentiment_dictionary.get(word, 0)) for word in review) / len(review))|
+'''Here is some code to add sentiment analysis to each of the text fields.  This has not yet been implemented.'''
+    # # Add 3 different sentiment values to the features:
+    # rev_sent_absolute = []
+    # rev_sent_adjusted = []
+    # rev_sent_valence = []
+    # for review in X:
+    #     rev_sent_absolute.append(sum(sentiment_dictionary.get(word, 0) for word in review))
+    #     rev_sent_adjusted.append(sum(sentiment_dictionary.get(word, 0) for word in review) / len(review))
+    #     rev_sent_valence.append(sum(math.fabs(sentiment_dictionary.get(word, 0)) for word in review) / len(review))
 
 
 
@@ -204,9 +197,8 @@ y_test = label_binarize(y_test, classes=authors)
 
 
 
-# Model Training:
-
-# First, we define a function for model instantiation:
+'''Model Training:'''
+# Define a function for model instantiation:
 def build_model():
     model = models.Sequential()
     model.add(layers.Dense(256, activation='relu', input_shape=(X_train.shape[1], )))
@@ -215,7 +207,7 @@ def build_model():
     model.compile(optimizer='rmsprop', loss='categorical_crossentropy', metrics=['accuracy'])
     return model
 
-# Now we run the model several times with different cross-validation splits:
+'''Run the model several times with different cross-validation splits:'''
 num_epochs = 10
 
 all_val_acc_histories = []
@@ -238,9 +230,11 @@ for index, (train_indices, val_indices) in enumerate(kf.split(X_train, y_train))
     all_val_acc_histories.append(val_acc_history)
 
 
+
 # Get the average accuracy amongst all k-folds for each epoch:
 average_val_acc_history = [np.mean([x[i] for x in all_val_acc_histories]) for i in range(num_epochs)]
 
+# Plot the results
 plt.figure(figsize=(14, 6))
 plt.plot(np.array(range(len(average_val_acc_history))) + 1, average_val_acc_history)
 plt.xticks(np.arange(0, 12, 1))
@@ -250,16 +244,15 @@ plt.xlabel('Epochs')
 plt.ylabel('Validation Accuracy')
 plt.show()
 
-# It looks like the average validation accuracy peaks at epoch 3.  Now let's create our final model:
+# It looks like the average validation accuracy peaks at epoch 3.  Now let's create our final model.
+
 # Build and train final model
 model = build_model()
 history = model.fit(X_train, y_train, epochs=3, batch_size=32, verbose=1)
 
 
 
-# Model Testing:
+'''Model Testing'''
 # Now it's time to put our money where our mouth is - time to test the data.
 results = model.evaluate(X_test, y_test, verbose=0)
-print('Test accuracy:', results[1])
-
-# 0.40625 - 40% accuracy!
+print('Test accuracy:', results[1]) # 0.40625 - 41% accuracy!
