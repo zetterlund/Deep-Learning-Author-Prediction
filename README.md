@@ -1,6 +1,6 @@
-# Article Author Prediction
+# Deep Learning Author Prediction
 
-This is a natural-language processing program I wrote that can predict who wrote a blog article based only on the text of the post.
+This is a natural-language processing program I wrote that can predict who wrote a blog article based only on the text of the post's title, headline, and description.
 
 For this project, I scraped a list of blog posts on Vice's "Motherboard" blog (__[www.motherboard.vice.com](http://www.motherboard.com)__).  I already executed the scraping script and have not included it in this Notebook.  I gathered about 15,000 different blog posts spanning 7 years.
 
@@ -14,9 +14,6 @@ For this project, I scraped a list of blog posts on Vice's "Motherboard" blog (_
 7. We analyze the results, learning that Validation Accuracy peaks at the third epoch.
 8. We create our final model and run the test data through it, and achieve a score of 0.40625.  40% accuracy!
 
-
-
 I used a relatively naive approach to feature generation; for each sample, I created a feature set of which words in the sample were in a list of the most common words in all the blog posts.  I could absolutely do more feature augmentation to achieve a higher model accuracy.
 
-Sven Anders Zetterlund<br />
-*szetterlund88@gmail.com*
+Sven Zetterlund
