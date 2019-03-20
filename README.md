@@ -12,7 +12,7 @@ For this project, I scraped a list of blog posts on Vice's "Motherboard" blog (_
 5. We binarize the labels, converting the authors' names into a one-hot encoded matrix.
 6. We run the data through a Keras deep neural network several times, with different cross-validation splits.
 7. We analyze the results, learning that Validation Accuracy peaks at the third epoch.
-8. We create our final model and run the test data through it, and achieve a score of 0.40625.  40% accuracy!
+8. We create our final model and run the test data through it, and achieve a score of 0.40625.  **41% accuracy!**
 
 I used a relatively naive approach to feature generation; for each sample, I created a feature set of which words in the sample were in a list of the most common words in all the blog posts.  I could absolutely do more feature augmentation to achieve a higher model accuracy.
 
